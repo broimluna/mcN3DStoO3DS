@@ -340,6 +340,7 @@ class CFormPage(QWidget):
         self.controls = QComboBox()
         self.controls.addItem("L + Circle Pad", "l-circle-pad")
         self.controls.addItem("Circle Pad Pro", "circle-pad-pro")
+        self.controls.addItem("Touch stick (update only)", "touch-stick")
         optionsLayout.addWidget(self.controls)
         self.overlay = QCheckBox("Show the FPS/debug overlay (update only)")
         optionsLayout.addWidget(self.overlay)
@@ -370,6 +371,10 @@ class CFormPage(QWidget):
 
     def updateOptions(self) -> None:
         updateSelected = bool(self.updateField.path()) if self.bootstrapMode else self.inputType.currentIndex() == 0
+        self.controls.model().item(2).setEnabled(updateSelected)
+        if not updateSelected and self.controls.currentData() == "touch-stick":
+            self.controls.setCurrentIndex(0)
+
         self.overlay.setEnabled(updateSelected)
         if not updateSelected:
             self.overlay.setChecked(False)
@@ -415,7 +420,8 @@ class CFormPage(QWidget):
         if self.bootstrapMode:
             basePath = checkedCia(self.baseField, "base")
             baseOutput = outputPath / "bootstrap-base"
-            tasks.append(("base bootstrap CIA", [str(basePath), *seed, *controls, "--bootstrap-cia", "-o", str(baseOutput)]))
+            baseControls = ["--controls", "l-circle-pad"] if self.controls.currentData() == "touch-stick" else controls
+            tasks.append(("base bootstrap CIA", [str(basePath), *seed, *baseControls, "--bootstrap-cia", "-o", str(baseOutput)]))
             if self.updateField.path():
                 updatePath = checkedCia(self.updateField, "update")
                 updateOutput = outputPath / "bootstrap-update"

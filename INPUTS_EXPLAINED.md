@@ -1,6 +1,28 @@
 # Controls
 
-Choose `--controls l-circle-pad` (the default) or `--controls circle-pad-pro` when patching an original CIA. Both the base game and update offer these modes. There is no in-game mode switch.
+Choose `--controls l-circle-pad` (the default), `--controls circle-pad-pro`, or `--controls touch-stick` when patching an original CIA. Touch stick requires the European v9.11.0 update. The other two modes support both base and update. There is no in-game mode switch.
+
+## Touch stick
+
+Touch-stick mode draws a translucent circle over the bottom-screen map. Press inside it and move the stylus away from its centre to turn the camera. Distance controls turn speed, with a small dead zone and a capped maximum speed. Release to stop. The Circle Pad continues to move the player while you aim.
+
+| Input | Action |
+| --- | --- |
+| Touch stick | Look around. |
+| Circle Pad | Walk or strafe. |
+| L | Place/use/interact. Previous category where supported in menus. |
+| R | Attack or break blocks. |
+| B | Drop in gameplay; back/cancel in menus. |
+| A | Jump or confirm/select. |
+| X / Y | Inventory / crafting. |
+| D-pad Left / Right | Previous / next hotbar slot. |
+| D-pad Up / Down | Camera perspective / sneak. |
+| START / SELECT | Pause. |
+| Other touchscreen areas | Original hotbar and HUD buttons. |
+
+The circle is centred at (104, 160) on the 320 x 240 touch screen, over the map and clear of the three buttons on the right. A press beginning outside the circle stays with the original interface even if dragged inside. A press beginning inside stays with the stick until release, including drags beyond the circle. Opening a menu cancels camera movement; lift the stylus before starting a new gesture. The stick is hidden in menus.
+
+This mode retains the original game's button bindings, including L for use and B for drop. It does not require a Circle Pad Pro. `--overlay` can be combined with it, though the debug text also occupies part of the map. ARM hook and gesture tests pass; in-game appearance, feel and physical Old 3DS behavior still need validation.
 
 ## L + Circle Pad: gameplay
 

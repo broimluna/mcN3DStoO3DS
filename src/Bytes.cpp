@@ -171,7 +171,7 @@ Mc3ds::TBytes Mc3ds::FromHex(const std::string &text) {
     return result;
 }
 
-Mc3ds::TBytes Mc3ds::CreateIpsPatch(const TBytes &before, const TBytes &after) {
+Mc3ds::TBytes Mc3ds::CreateIpsPatch(const TBytes &before, const TBytes &after, const std::vector<TByteRange> &overwriteRanges) {
     if (before.size() != after.size()) {
         throw std::runtime_error("IPS input sizes differ");
     }
@@ -180,10 +180,16 @@ Mc3ds::TBytes Mc3ds::CreateIpsPatch(const TBytes &before, const TBytes &after) {
         throw std::runtime_error("IPS input exceeds the 24-bit address range");
     }
 
+    auto required = TBytes(before.size(), 0);
+    for (const auto &range : overwriteRanges) {
+        RequireRange(before.size(), range.offset, range.size);
+        std::fill_n(required.begin() + static_cast<std::ptrdiff_t>(range.offset), range.size, std::uint8_t{1});
+    }
+
     auto result = TBytes{'P', 'A', 'T', 'C', 'H'};
     auto offset = std::size_t{0};
     while (offset < after.size()) {
-        while (offset < after.size() && before[offset] == after[offset]) {
+        while (offset < after.size() && before[offset] == after[offset] && required[offset] == 0) {
             ++offset;
         }
 
@@ -191,17 +197,18 @@ Mc3ds::TBytes Mc3ds::CreateIpsPatch(const TBytes &before, const TBytes &after) {
             break;
         }
 
-        auto start = offset;
+        auto start = offset & ~std::size_t{3};
         auto lastDifference = offset;
         while (++offset < after.size()) {
-            if (before[offset] != after[offset]) {
+            if (before[offset] != after[offset] || required[offset] != 0) {
                 lastDifference = offset;
             } else if (offset - lastDifference > 8) {
                 break;
             }
         }
 
-        auto remaining = lastDifference - start + 1;
+        const auto end = std::min(after.size(), (lastDifference + 4) & ~std::size_t{3});
+        auto remaining = end - start;
         while (remaining != 0) {
             auto recordStart = start;
             auto recordSize = std::min<std::size_t>(remaining, recordStart == 0x454f46 ? 0xfffe : 0xffff);
@@ -221,6 +228,8 @@ Mc3ds::TBytes Mc3ds::CreateIpsPatch(const TBytes &before, const TBytes &after) {
             start += consumed;
             remaining -= consumed;
         }
+
+        offset = std::max(offset, end);
     }
 
     result.insert(result.end(), {'E', 'O', 'F'});

@@ -15,6 +15,8 @@ Version 0.4.13 restores optional one-time bootstrap CIA generation with `--boots
 
 The optional Python GUI in v0.4.13 offers the same bootstrap and IPS paths through two pages. It delegates patching and verification to the CLI executable.
 
+Version 0.4.15 adds touch-stick gesture isolation across controller slots and completion processing on late frames. It retains v0.4.14 bootstrap layouts. User Old 3DS testing of v0.4.14 confirmed the camera works and block hitching stops, with unwanted HUD actions and delayed block visuals. The new fixes pass focused ARM tests; their hardware behaviour and save/reload remain to be checked. See [validation limits](PERFORMANCE.md#v0415-touch-input-and-block-visibility-candidate).
+
 ## Reference SHA-256 hashes
 
 | File | SHA-256 |
@@ -23,10 +25,12 @@ The optional Python GUI in v0.4.13 offers the same bootstrap and IPS paths throu
 | Original update CIA | `8526ef24719d074c1b3de4742e23c795c003ff51d10f7ea99839c6974587a75b` |
 | Base executable, L + Circle Pad | `a1c746e9efbf8bd8d26deb5abe33e1944c9cfd579f8233239536d0166e3b5740` |
 | Base executable, Circle Pad Pro | `6aaca1236211154d86f81b23c84fae9913effd48d316a3bb05e02a077c9a71e2` |
-| Update executable, L + Circle Pad, overlay off (default) | `cb943e340bdb701c09fa70a0bb537f42d97d7172748531fe8011b7834535d998` |
-| Update executable, Circle Pad Pro, overlay off (default) | `a25bd838bf5142032a2eae357c7f319c9e6467d6595596bbc3cfef2ac5aeaa46` |
-| Update executable, L + Circle Pad, `--overlay` | `805180e1554c29de079dd3374c99cac5ebba1a0a04d3cffb1c0602395912b04f` |
-| Update executable, Circle Pad Pro, `--overlay` | `65fd0645adcd8abe6cb595a3328efc104f0255fdcaa16c7fe472fb187afc8038` |
+| Update executable, L + Circle Pad, overlay off (default) | `77c33974d6957b7d866151d50a5f808beb5e28bbf55f80f459845fa1ca575501` |
+| Update executable, Circle Pad Pro, overlay off (default) | `3fa92c2bedbe5ce21db9e56f7b49bcac341d04be4b0e27aa44339d038da71daa` |
+| Update executable, L + Circle Pad, `--overlay` | `39c355ab69a2bd803ad90db24db13a8a9b3689baa8246d89716e6a68d4501d18` |
+| Update executable, Circle Pad Pro, `--overlay` | `2f703fe2b24ec7a89998d95b5eb096feeba110939554f0c5d4f2492ea3d426f7` |
+| Update executable, Touch stick, overlay off | `56253fce9ff61c4e1be81acf552f536fc17c487c984c9201912cb83e683daaae` |
+| Update executable, Touch stick, `--overlay` | `cd07826c69a129bf681e8897cb1b9b6be26bf21b28c1d148a0b13964cb8521ee` |
 
 Version 0.3.1 changed extended-header text metadata so Luma places its LayeredFS payload after the patcher's hooks. Version 0.3.2 forced on the update's retained frame-timer display. Version 0.4.0 fixed its invalid `2147483647 FPS` current value and replaced CIA rebuilding with external `code.bin` and `exheader.bin` output. Version 0.4.1 added the SD-application capability required for resource-pack access. Version 0.4.2 switched to the reliable bootstrap plus `code.ips` route. Version 0.4.3 adjusted the retained frame-timer layout. Version 0.4.4 added an experimental Mods UI proof of concept. Version 0.4.5 removes that UI experiment and all debug-overlay patches, then adds guarded chunk decompression, biome-layer RNG, and startup presentation optimizations.
 
@@ -36,7 +40,7 @@ Version 0.4.6 fixes a v0.4.5 regression: the reusable scratch pointer overlapped
 
 Version 0.4.7 adds direct raw-light lookup, per-call inflate-context reuse and exact modulo-eight masking in biome-color generation. It keeps the same bootstrap requirements and LayeredFS shader files. The experimental biome-ready cache is excluded because a controlled neighbor-availability test produced stale colors. Context reuse reduced allocator traffic but raised peak live test allocations by up to 32 KiB in the sampled cases; low-memory hardware behavior remains unverified.
 
-Other regions and revisions are unverified. `--allow-similar` tries them with strict signature and layout checks. The update profile supports this in both modes; base-game CPP mode still requires its exact reference executable. Missing or ambiguous matches are rejected. DLC and already-patched inputs are unsupported.
+Other regions and revisions are unverified. `--allow-similar` tries them with strict signature and layout checks. The update profile supports this with L + Circle Pad and CPP; touch stick and base-game CPP require their exact reference executables. Missing or ambiguous matches are rejected. DLC and already-patched inputs are unsupported.
 
 Azahar checks covered base-game CPP controls and connection failures, plus update startup, saved-world loading, movement, camera, and dropping. The update's CPP gameplay has not been checked in Azahar. Emulation cannot confirm the accessory's physical IR link, battery, calibration, or sleep/wake behavior.
 

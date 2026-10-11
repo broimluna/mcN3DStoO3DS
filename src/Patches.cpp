@@ -56,7 +56,11 @@ Mc3ds::EControlMode Mc3ds::ParseControlMode(const std::string &name) {
         return EControlMode::CIRCLE_PAD_PRO;
     }
 
-    throw std::runtime_error("Unknown control mode '" + name + "'; use l-circle-pad or circle-pad-pro");
+    if (name == "touch-stick") {
+        return EControlMode::TOUCH_STICK;
+    }
+
+    throw std::runtime_error("Unknown control mode '" + name + "'; use l-circle-pad, circle-pad-pro or touch-stick");
 }
 
 std::string Mc3ds::ControlModeName(EControlMode controlMode) {
@@ -65,6 +69,8 @@ std::string Mc3ds::ControlModeName(EControlMode controlMode) {
         return "l-circle-pad";
     case EControlMode::CIRCLE_PAD_PRO:
         return "circle-pad-pro";
+    case EControlMode::TOUCH_STICK:
+        return "touch-stick";
     }
 
     throw std::runtime_error("Invalid control mode");
@@ -77,7 +83,9 @@ Mc3ds::TPatchResult Mc3ds::PatchGame(const TBytes &code, const TBytes &exheader,
     const auto inputHash = Sha256(code);
     Require(inputHash != patchedCodeHash && inputHash != previousPatchedCodeHash && inputHash != circlePadProCodeHash &&
             inputHash != updateLCirclePadCodeHash && inputHash != updateCirclePadProCodeHash &&
-            inputHash != updateLCirclePadOverlayCodeHash && inputHash != updateCirclePadProOverlayCodeHash,
+            inputHash != updateLCirclePadOverlayCodeHash && inputHash != updateCirclePadProOverlayCodeHash &&
+            inputHash != updateTouchStickCodeHash && inputHash != updateTouchStickOverlayCodeHash &&
+            inputHash != previousUpdateTouchStickCodeHash && inputHash != previousUpdateTouchStickOverlayCodeHash,
         "This executable is already patched; start with an original CIA");
 
     if (inputHash == updateOriginalCodeHash || (Read64(exheader, 0x1c8) >> 32) == 0x0004000e) {
@@ -85,6 +93,8 @@ Mc3ds::TPatchResult Mc3ds::PatchGame(const TBytes &code, const TBytes &exheader,
     }
 
     Require(!enableOverlay, "--overlay requires the supported European v9.11.0 update, not the base game");
+    Require(controlMode != EControlMode::TOUCH_STICK,
+        "touch-stick requires the European v9.11.0 update; patch the installed update CIA");
     const auto known = inputHash == testedCodeHash;
     //The accessory worker calls SDK entry points verified for this executable only.
     Require(!circlePadPro || known, "Circle Pad Pro mode requires the documented European v0.1.0 executable, including with --allow-similar");
@@ -212,7 +222,7 @@ Mc3ds::TPatchResult Mc3ds::PatchGame(const TBytes &code, const TBytes &exheader,
     Require(Read32(code, particleTickOffset) == 0xe92d4ff8 && Read32(code, particleTickOffset + 4) == 0xe1a08000,
         "Particle tick stack frame differs from the pickup hook");
 
-    auto result = TPatchResult{code, exheader, icon, {}, known};
+    auto result = TPatchResult{code, exheader, icon, {}, known, {}};
     auto report = std::ostringstream{};
     report << "Executable SHA-256: " << inputHash << "\n";
     report << "Profile: " << (known ? "tested executable" : "experimental signature match") << "\n";

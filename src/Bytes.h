@@ -8,6 +8,11 @@
 namespace Mc3ds {
     using TBytes = std::vector<std::uint8_t>;
 
+    struct TByteRange {
+        std::size_t offset;
+        std::size_t size;
+    };
+
     TBytes ReadFile(const std::filesystem::path &path, std::uint64_t limit = 64 * 1024 * 1024);
     void WriteFile(const std::filesystem::path &path, const TBytes &data);
     void WriteText(const std::filesystem::path &path, const std::string &text);
@@ -16,7 +21,7 @@ namespace Mc3ds {
     void Write32(TBytes &data, std::size_t offset, std::uint32_t value);
     void RequireRange(std::size_t size, std::size_t offset, std::size_t length);
     TBytes FromHex(const std::string &text);
-    TBytes CreateIpsPatch(const TBytes &before, const TBytes &after);
+    TBytes CreateIpsPatch(const TBytes &before, const TBytes &after, const std::vector<TByteRange> &overwriteRanges = {});
     TBytes ApplyIpsPatch(const TBytes &before, const TBytes &patch);
     std::string Hex(const TBytes &data);
     std::string HexNumber(std::uint64_t value, int width = 0);

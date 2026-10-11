@@ -1,5 +1,28 @@
 # Performance validation
 
+## v0.4.15 touch input and block visibility candidate
+
+User hardware evidence, 2026-10-02: on an Old 3DS, v0.4.14 stopped the block-edit hitch and the touch camera rotated correctly. The user reported that broken blocks remained visible for about one second after collision disappeared, and stick gestures also triggered crouch or inventory. These are user observations, not instrumented timings.
+
+The touch leak came from handling only logical controller 0. The native input loop samples the same touchscreen in each active controller iteration. Later slots could therefore send a captured gesture to the HUD. Version 0.4.15 consumes captured touches and their releases in every slot, while injecting camera axes only into slot 0. Movement, physical buttons, stick geometry and sensitivity are preserved.
+
+The queued rebuild from v0.4.14 remains: update address `0x1d5990` passes zero to `CLevelBuilder::buildChunk`, selecting the existing priority background path. Collision changes immediately; `endRebuild` replaces the old mesh on the main thread. An empty builder pool leaves the chunk dirty for retry.
+
+Further tracing found that `CWorkerPool::runCoroutines` returns before polling completed jobs when the remaining frame budget is zero or negative. Thus a finished rebuild can wait for a later frame, and its builder remains unavailable meanwhile. Version 0.4.15 redirects only this early-return branch at `0x16fb48`: it polls one completion from the first asynchronous streaming worker through the original locked dequeue and callback cleanup, then returns the original budget-exhausted result. It starts no new worker job on the main thread. Frames with a positive budget retain their original path. The existing pool has one streaming worker; file I/O and main-thread job groups are not polled by the added hook.
+
+The 36-byte completion helper occupies the checked gap between the existing heap helpers at `0x35d634`. Text extent, BSS size and bootstrap LayeredFS reservations remain compatible with v0.4.14. No new bootstrap installation is needed for its existing compatible touch-stick setup.
+
+Validation completed locally:
+
+- The new touch regression runs all four iterations of the native ARM input loop with controlled controller handles and hardware samples. The v0.4.14 executable leaks stick events to native HUD dispatch; v0.4.15 suppresses them through press, dragging outside, release and menu transition. Ordinary HUD touches and physical buttons remain available.
+- The worker regression executes native scheduling and completion dequeue with controlled callback bodies and OS locks. Across 60 consecutive late frames, the old executable processes no completions; the candidate processes at most one per frame in FIFO order and calls cleanup exactly once. Empty queues, empty groups, synchronous workers, positive budgets and register/stack preservation pass. This is a scheduling regression, not a hardware latency benchmark.
+- The rebuild dispatch, all six update profile hashes, IPS round trips, original button bindings, unchanged bootstrap layout and incompatible-input rejection are checked.
+- Host gesture tests cover all 76,800 screen coordinates and transitions. Compiled ARM hooks also check registers/VFP, native HUD argument forwarding, tint restoration, circle geometry and HUD destruction. Engine rendering and screen lookup are mocked.
+
+Actual mesh construction still takes time, and a completion callback itself has a cost. The new hook removes a demonstrated source of starvation; it does not prove the user's entire one-second delay is resolved. Test single and rapid edits, chunk boundaries, lighting, touch gestures and save/reload on the Old 3DS. The separate night-time slowdown/crash remains outside this change.
+
+Private regression fixtures and harnesses are kept out of the release source. The published payload generators, `scripts/buildTouchStickPayload.py` and `scripts/buildWorkerCompletionPayload.py`, accept `--check --reference-code ...` to verify their generated headers against a private stock update executable.
+
 ## v0.4.10 aligned-allocation improvement
 
 An uninstrumented same-save Azahar ABBA comparison measured 50.468 seconds on v0.4.9 versus 43.495 seconds with v0.4.10, a 6.973-second / 13.8% reduction to first survival HUD. This is two runs per build on one existing world. There is visible run-to-run variation; it is not a console benchmark, a proven gameplay FPS gain, or a statistically established percentage across worlds.

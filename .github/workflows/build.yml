@@ -142,11 +142,20 @@ jobs:
                     fi
 
                     if [[ "$releaseExists" == true ]]; then
-                        gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA"
+                        if [[ "$RELEASE_TAG" == v0.4.15 ]]; then
+                            gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Touchscreen update" --notes ""
+                        else
+                            gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA"
+                        fi
                         gh release upload "$RELEASE_TAG" ./*.tar.gz ./*.zip ./*.ips SHA256SUMS.txt --clobber
                     else
-                        gh release create "$RELEASE_TAG" ./*.tar.gz ./*.zip ./*.ips SHA256SUMS.txt \
-                            --target "$GITHUB_SHA" --draft --title "$RELEASE_TAG" --generate-notes "${releaseOptions[@]}"
+                        if [[ "$RELEASE_TAG" == v0.4.15 ]]; then
+                            gh release create "$RELEASE_TAG" ./*.tar.gz ./*.zip ./*.ips SHA256SUMS.txt \
+                                --target "$GITHUB_SHA" --draft --title "Touchscreen update" --notes "" "${releaseOptions[@]}"
+                        else
+                            gh release create "$RELEASE_TAG" ./*.tar.gz ./*.zip ./*.ips SHA256SUMS.txt \
+                                --target "$GITHUB_SHA" --draft --title "$RELEASE_TAG" --generate-notes "${releaseOptions[@]}"
+                        fi
                     fi
 
                     gh release edit "$RELEASE_TAG" --draft=false "${releaseOptions[@]}"

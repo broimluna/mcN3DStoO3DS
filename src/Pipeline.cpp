@@ -305,7 +305,7 @@ void Mc3ds::RunPatcher(const TOptions &options) {
         throw std::runtime_error("Input must be a regular CIA file");
     }
 
-    const auto suffix = options.controlMode == EControlMode::CIRCLE_PAD_PRO ? "-old3ds-luma-circle-pad-pro" : "-old3ds-luma";
+    const auto suffix = options.controlMode == EControlMode::TOUCH_STICK ? "-old3ds-luma-touch-stick" : (options.controlMode == EControlMode::CIRCLE_PAD_PRO ? "-old3ds-luma-circle-pad-pro" : "-old3ds-luma");
     auto outputDirectory = options.output.empty() ? input.parent_path() / (input.stem().u8string() + suffix) :
                                                     std::filesystem::absolute(options.output);
     outputDirectory = std::filesystem::weakly_canonical(outputDirectory);
@@ -414,7 +414,7 @@ void Mc3ds::RunPatcher(const TOptions &options) {
         throw std::runtime_error("Patched extended header has an unexpected size");
     }
 
-    const auto ipsPatch = CreateIpsPatch(originalCode, patched.code);
+    const auto ipsPatch = CreateIpsPatch(originalCode, patched.code, patched.ipsOverwriteRanges);
     if (ApplyIpsPatch(originalCode, ipsPatch) != patched.code) {
         throw std::runtime_error("Generated IPS did not reproduce the patched executable");
     }

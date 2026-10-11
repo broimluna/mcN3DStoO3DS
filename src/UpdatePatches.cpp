@@ -4,6 +4,8 @@
 #include "OverlayData.h"
 #include "SignatureData.h"
 #include "ContainerCancel.h"
+#include "TouchStickData.h"
+#include "WorkerCompletionData.h"
 
 #include <algorithm>
 #include <map>
@@ -40,6 +42,7 @@ void Mc3ds::RelocateUpdateBranch(TBytes &payload, std::uint32_t payloadAddress, 
 Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exheader, const TBytes &icon, bool allowSimilar,
     EControlMode controlMode, bool enableOverlay) {
     const auto circlePadPro = controlMode == EControlMode::CIRCLE_PAD_PRO;
+    const auto touchStick = controlMode == EControlMode::TOUCH_STICK;
     const auto inputHash = Sha256(code);
     const auto known = inputHash == updateOriginalCodeHash;
     Require(known || allowSimilar, "Unrecognized update executable SHA-256: " + inputHash + ". Use --allow-similar to try the guarded update signatures; compatibility is not guaranteed.");
@@ -151,6 +154,12 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
     Require(Read32(code, startupPresentationOneOffset) == 0x40a00000 &&
             Read32(code, startupPresentationTwoOffset) == 0x40a00000,
         "Startup presentation timing table differs from the supported update");
+    const auto blockRebuildModeOffset = std::size_t{0xd5990};
+    Require(Read32(code, blockRebuildModeOffset) == 0xe59d2068 &&
+            Read32(code, blockRebuildModeOffset + 12) == 0xebfffe6f &&
+            Sha256(TBytes(code.begin() + 0xd5738, code.begin() + 0xd5a14)) ==
+                "089b71a2bbf66d816a14a8ccd31c2d35a63fdeae6cc70070b63732283d15555a",
+        "Nearby chunk rebuild dispatch differs from the supported update");
     for (const auto &guard : updatePerformanceGuards) {
         RequireRange(code.size(), guard.offset, guard.size);
         const auto guardedBytes = TBytes(code.begin() + static_cast<std::ptrdiff_t>(guard.offset),
@@ -159,12 +168,35 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
             "Performance ABI differs from the supported update: " + std::string(guard.name));
     }
 
+    for (const auto &guard : updateWorkerGuards) {
+        RequireRange(code.size(), guard.offset, guard.size);
+        const auto guardedBytes = TBytes(code.begin() + static_cast<std::ptrdiff_t>(guard.offset),
+            code.begin() + static_cast<std::ptrdiff_t>(guard.offset + guard.size));
+        Require(Sha256(guardedBytes) == guard.hash,
+            "Worker ABI differs from the supported update: " + std::string(guard.name));
+    }
+
     for (const auto &guard : updateOverlayGuards) {
         RequireRange(code.size(), guard.offset, guard.size);
         const auto guardedBytes = TBytes(code.begin() + static_cast<std::ptrdiff_t>(guard.offset),
             code.begin() + static_cast<std::ptrdiff_t>(guard.offset + guard.size));
         Require(Sha256(guardedBytes) == guard.hash,
             "Overlay ABI differs from the supported update: " + std::string(guard.name));
+    }
+    if (touchStick) {
+        Require(known && bssEnd == 0xb3fc30 && controlsOffset == updateTouchHooksOffset &&
+                accessoryOffset == updateTouchDiskOffset && updateTouchMainOffset == 0x25c750 &&
+                updateTouchInputHookAddress == textAddress + controlsOffset && addressOf("inputHook") == 0x108120,
+            "Touch-stick mode requires the exact supported update layout");
+        for (const auto &guard : updateTouchGuards) {
+            RequireRange(code.size(), guard.offset, guard.size);
+            const auto bytes = TBytes(code.begin() + static_cast<std::ptrdiff_t>(guard.offset),
+                code.begin() + static_cast<std::ptrdiff_t>(guard.offset + guard.size));
+            Require(Sha256(bytes) == guard.hash, "Touch-stick ABI changed: " + std::string(guard.name));
+        }
+
+        Require(Read32(code, 0x579000) == 0x0bfff4ad && Read32(code, 0x579344) == 0xe92d41f0,
+            "Touch-stick HUD hooks differ from the supported update");
     }
     Require(updateOverlayOffset + updateOverlayCapacity <= textSize &&
             updateOverlayStateAddress >= bssStart &&
@@ -209,6 +241,7 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
     claimRange(nextIntOffset, 4);
     claimRange(startupPresentationOneOffset, 4);
     claimRange(startupPresentationTwoOffset, 4);
+    claimRange(blockRebuildModeOffset, 4);
     claimRange(blockLookupOffset, 0xe8);
     claimRange(climateSeedOffset, 4);
     claimRange(prepareInflateOffset, 4);
@@ -223,6 +256,12 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
     claimRange(updateOverlayVblankHookOffset, 4);
     claimRange(updateHeapSearchHookOffset, 4);
     claimRange(updateAlignedAllocationHookOffset, 4);
+    claimRange(updateLateCompletionHookOffset, 4);
+    if (touchStick) {
+        claimRange(0x25c74c, 0x390);
+        claimRange(0x579000, 4);
+        claimRange(0x579344, 4);
+    }
     for (const auto offset : inflateCallbackOffsets) {
         claimRange(offset, 4);
     }
@@ -270,14 +309,20 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
         }
     }
 
-    auto result = TPatchResult{code, exheader, icon, {}, known};
+    auto result = TPatchResult{code, exheader, icon, {}, known, {}};
+    //Legacy bootstrap updates contain control code here, including nonzero bytes where stock has zeros.
+    result.ipsOverwriteRanges.push_back({controlsOffset, 0x120});
     auto report = std::ostringstream{};
     report << "Executable SHA-256: " << inputHash << "\nProfile: European v9.11.0 update"
            << (known ? " reference executable\n" : " experimental signature match\n")
            << "Control mode: " << ControlModeName(controlMode) << "\n";
     for (const auto &location : locations) {
         const auto &spec = *location.spec;
-        if (circlePadPro && spec.kind == EWriteKind::CONTROL_BINDING) {
+        if (spec.kind == EWriteKind::CONTROL_BINDING) {
+            result.ipsOverwriteRanges.push_back({location.offset, 4});
+        }
+
+        if ((circlePadPro || touchStick) && spec.kind == EWriteKind::CONTROL_BINDING) {
             continue;
         }
 
@@ -334,6 +379,23 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
         std::copy(accessory.begin(), accessory.end(), result.code.begin() + accessoryOffset);
         Write32(result.code, anchors.at("accessoryShutdown"), ArmBranch(addressOf("accessoryShutdown"), CheckedAdd(accessoryAddress, 0xe8)));
         report << "Accessory worker uses signature-resolved SDK entry points. Hardware validation pending.\n";
+    } else if (touchStick) {
+        const auto installTouchPayload = [&](const std::string &hex, const std::string &hash, std::size_t offset, std::size_t capacity) {
+            const auto payload = FromHex(hex);
+            Require(payload.size() <= capacity && Sha256(payload) == hash, "Invalid touch-stick payload");
+            RequireRange(result.code.size(), offset, payload.size());
+            std::copy(payload.begin(), payload.end(), result.code.begin() + static_cast<std::ptrdiff_t>(offset));
+        };
+        std::fill_n(result.code.begin() + 0x25c74c, 0x390, std::uint8_t{0});
+        Write32(result.code, 0x25c74c, 0xe12fff1e);
+        installTouchPayload(updateTouchMainHex, updateTouchMainHash, updateTouchMainOffset, 0x38c);
+        installTouchPayload(updateTouchHooksHex, updateTouchHooksHash, updateTouchHooksOffset, 0x100);
+        installTouchPayload(updateTouchDiskHex, updateTouchDiskHash, updateTouchDiskOffset, 0x14c);
+        Write32(result.code, anchors.at("inputHook"), ArmBranch(addressOf("inputHook"), updateTouchInputHookAddress));
+        Write32(result.code, 0x579000, (ArmBranch(0x679000, updateDrawTouchStickAddress) & 0x00ffffffU) | 0x0b000000U);
+        Write32(result.code, 0x579344, ArmBranch(0x679344, updateTouchHudDestroyHookAddress));
+        report << "Touch stick overlays the map; original game button bindings are retained.\n"
+               << "Captured touch gestures stay owned through release and cancel when a menu opens.\n";
     } else {
         PatchContainerCancel(code, result.code, controls, textAddress, controlsAddress, updateContainerCancel);
         std::copy(controls.begin(), controls.end(), result.code.begin() + controlsOffset);
@@ -359,6 +421,7 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
     writePerformanceBranch(nextIntOffset, performanceTarget(updateNextIntPowerOfTwoOffset), false);
     Write32(result.code, startupPresentationOneOffset, 0x3f000000);
     Write32(result.code, startupPresentationTwoOffset, 0x3f000000);
+    Write32(result.code, blockRebuildModeOffset, 0xe3a02000);
     std::copy(blockLookup.begin(), blockLookup.end(), result.code.begin() + blockLookupOffset);
     writePerformanceBranch(climateSeedOffset, performanceTarget(updateInitializeFinalClimateCellOffset), true);
     writePerformanceBranch(prepareInflateOffset, performanceTarget(updatePrepareInflateOutputOffset), true);
@@ -398,6 +461,13 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
             textAddress + updateAlignedAllocationHookOffset == 0x112574 &&
             Read32(code, updateAlignedAllocationHookOffset) == 0x0a00003d,
         "Aligned allocation linked address or entry instruction changed");
+    const auto lateCompletion = FromHex(updateLateCompletionHex);
+    Require(updateLateCompletionOffset >= updateHeapSearchOffset + heapSearch.size() &&
+            updateLateCompletionOffset + lateCompletion.size() <= updateAlignedAllocationOffset &&
+            lateCompletion.size() == updateLateCompletionSize && Sha256(lateCompletion) == updateLateCompletionHash &&
+            textAddress + updateLateCompletionOffset == 0x35d634 &&
+            Read32(code, updateLateCompletionHookOffset) == 0x9a00002f,
+        "Late worker completion hook or reserved gap changed");
     std::fill_n(result.code.begin() + updateOverlayOffset, updateOverlayCapacity, std::uint8_t{0});
     if (enableOverlay) {
         std::copy(overlay.begin(), overlay.end(), result.code.begin() + updateOverlayOffset);
@@ -411,8 +481,11 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
 
     std::copy(heapSearch.begin(), heapSearch.end(), result.code.begin() + updateHeapSearchOffset);
     std::copy(alignedAllocation.begin(), alignedAllocation.end(), result.code.begin() + updateAlignedAllocationOffset);
+    std::copy(lateCompletion.begin(), lateCompletion.end(), result.code.begin() + updateLateCompletionOffset);
     Write32(result.code, updateHeapSearchHookOffset, ArmBranch(0x123bd8, 0x35d5f0));
     Write32(result.code, updateAlignedAllocationHookOffset, ArmBranch(0x112574, 0x35d658));
+    Write32(result.code, updateLateCompletionHookOffset,
+        (ArmBranch(0x16fb48, 0x35d634) & 0x00ffffffU) | 0x9a000000U);
 
     Write32(result.code, startupOffset, CheckedAdd(bssEnd, extraBssSize));
     Write32(result.exheader, 0x18, caveEnd);
@@ -423,12 +496,16 @@ Mc3ds::TPatchResult Mc3ds::PatchUpdateGame(const TBytes &code, const TBytes &exh
     Write32(result.exheader, 0x394, 0xff000101);
     Write32(result.icon, 0x2028, 0x1c1);
     const auto outputHash = Sha256(result.code);
-    const auto &standardHash = circlePadPro ? updateCirclePadProCodeHash : updateLCirclePadCodeHash;
-    const auto &overlayHash = circlePadPro ? updateCirclePadProOverlayCodeHash : updateLCirclePadOverlayCodeHash;
+    const auto &standardHash = touchStick ? updateTouchStickCodeHash : (circlePadPro ? updateCirclePadProCodeHash : updateLCirclePadCodeHash);
+    const auto &overlayHash = touchStick ? updateTouchStickOverlayCodeHash : (circlePadPro ? updateCirclePadProOverlayCodeHash : updateLCirclePadOverlayCodeHash);
     const auto &expectedHash = enableOverlay ? overlayHash : standardHash;
     Require(!known || outputHash == expectedHash,
         "Update executable did not reproduce the expected control profile: " + outputHash);
     report << "Pickup animations tick and expire with low graphics enabled.\n";
+    report << "Nearby block edits use the existing priority rebuild queue instead of synchronous mesh generation.\n"
+           << "Old meshes remain until completion; lighting and biome-color refreshes are retained.\n"
+           << "Late frames poll one completed streaming job without starting another job on the main thread.\n"
+           << "User Old 3DS testing confirmed reduced hitching in v0.4.14; v0.4.15 visual latency needs hardware testing.\n";
     if (enableOverlay) {
         report << "FPS/debug overlay: enabled (--overlay).\n"
                << "Custom bottom-screen overlay: presented FPS, average/peak frame interval and three arena heaps.\n"

@@ -12,7 +12,7 @@ void Mc3ds::PrintHelp() {
     std::cout << "Minecraft Old 3DS Patcher " MC3DS_VERSION "\n\n"
                  "Usage: mc3ds-patcher input.cia [options]\n\n"
                  "  -o, --output DIRECTORY  Output folder for generated files\n"
-                 "  --controls MODE        l-circle-pad (default) or circle-pad-pro\n"
+                 "  --controls MODE        l-circle-pad (default), circle-pad-pro or touch-stick (update)\n"
                  "  --overlay              Enable FPS/debug overlay (update only; default off)\n"
                  "  --bootstrap-cia        Also build a one-time installable bootstrap CIA\n"
                  "  --tools-dir DIRECTORY   Folder containing ctrtool and makerom\n"

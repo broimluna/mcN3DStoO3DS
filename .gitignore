@@ -2,6 +2,13 @@
 /.gui-venv/
 /tools/
 /dist/
+/tests/
+/experiments/
+/AGENTS.md
+/scripts/checkBlockRebuildDispatch.py
+/scripts/checkTouchStickPayload.py
+/scripts/checkWorkerCompletion.py
+/scripts/installPerformanceTest4ToSd.sh
 *.cia
 *.3ds
 *.cxi
