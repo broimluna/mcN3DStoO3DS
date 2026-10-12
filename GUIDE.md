@@ -38,7 +38,7 @@ The rest of this guide gives the equivalent terminal commands and explains the f
 
 Start with your original base CIA, and use the original update CIA if you want game version 1.9. Do not give the patcher an already-patched CIA or DLC. Both versions place `code.ips` under the base title ID, `000400000017CA00`.
 
-The reference update needs no separate seed. An encrypted European base CIA needs its raw 16-byte title seed or a matching `seeddb.bin`. You can [download the base-game seed from Nintendo](https://kagiya-ctr.cdn.nintendo.net/title/0x000400000017ca00/ext_key?country=GB) and save the binary file as `title-seed.bin`. Check that the file is exactly 16 bytes. If the download fails, use a seed or seed database you already have. Use `--seed-file "title-seed.bin"` for a raw seed or `--seeddb "seeddb.bin"` for a database. An already-decrypted CIA needs neither. Renaming a raw seed to `seeddb.bin` does not turn it into a database.
+The reference update needs no separate seed. An encrypted European base CIA needs its raw 16-byte title seed or a matching `seeddb.bin`. You can [download the base-game seed from Nintendo](https://kagiya-ctr.cdn.nintendo.net/title/0x00040000001B8700/ext_key?country=US) and save the binary file as `title-seed.bin`. Check that the file is exactly 16 bytes. If the download fails, use a seed or seed database you already have. Use `--seed-file "title-seed.bin"` for a raw seed or `--seeddb "seeddb.bin"` for a database. An already-decrypted CIA needs neither. Renaming a raw seed to `seeddb.bin` does not turn it into a database.
 
 ## Make the bootstrap CIAs from a terminal
 
