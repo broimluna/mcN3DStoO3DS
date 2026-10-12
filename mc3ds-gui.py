@@ -298,7 +298,7 @@ class CFormPage(QWidget):
         noteLayout = QVBoxLayout(note)
         noteLayout.setContentsMargins(15, 11, 15, 11)
         noteLabel = QLabel(
-            "Use your own original European CIA files. Back up saves before installing."
+            "Use your own original North American CIA files. Back up saves before installing."
             if bootstrapMode else
             "Use the original CIA that matches the installed update. Keep the bootstrap titles installed."
         )
