@@ -26,7 +26,7 @@ void Mc3ds::PrintHelp() {
                  "Supports the European v0.1.0 base game and v9.11.0 update.\n"
                  "Build the bootstrap base first; add the update if you use it.\n"
                  "For later IPS changes, use the original CIA matching the installed update.\n"
-                 "Copy code.ips to /luma/titles/000400000017CA00/ with game patching enabled.\n"
+                 "Copy code.ips to /luma/titles/00040000001B8700/ with game patching enabled.\n"
                  "Install bootstrap.cia with FBI once if you generated it. See GUIDE.md.\n";
 }
 

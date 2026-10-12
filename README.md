@@ -16,7 +16,7 @@ If your compatible bootstrap update is installed, the usual command is:
 ./mc3ds-patcher "Minecraft-update.cia" -o "minecraft-luma"
 ```
 
-Copy the resulting `code.ips` to `/luma/titles/000400000017CA00/` with Luma game patching enabled. Keep the bootstrap titles installed. Later patch changes only need a new `code.ips`, not another FBI installation.
+Copy the resulting `code.ips` to `/luma/titles/00040000001B8700/` with Luma game patching enabled. Keep the bootstrap titles installed. Later patch changes only need a new `code.ips`, not another FBI installation.
 
 If you already have the matching bootstrap titles installed, the release also includes eight ready-made IPS files for the supported base/update, control, and update-overlay choices. Choose the matching file and rename it to `code.ips` on the SD card. See the [setup guide](GUIDE.md#make-the-luma-patch).
 

@@ -4,10 +4,10 @@ The European bootstrap base and update have been reported working on an Old 3DS 
 
 | Input | Product code | Title ID | CIA version |
 | --- | --- | --- | --- |
-| Base v0.1.0 | `KTR-P-BD3P` | `000400000017ca00` | 16 |
-| Update v9.11.0, game 1.9 | `KTR-U-BD3P` | `0004000e0017ca00` | 9392 |
+| Base v0.1.0 | `KTR-P-BD3P` | `00040000001b8700` | 16 |
+| Update v9.11.0, game 1.9 | `KTR-U-BD3P` | `0004000e001b8700` | 9392 |
 
-When the bootstrap update is installed, generate the IPS from the original update CIA. Generate from the base CIA only when no update is installed. Both use Luma directory `/luma/titles/000400000017CA00/`.
+When the bootstrap update is installed, generate the IPS from the original update CIA. Generate from the base CIA only when no update is installed. Both use Luma directory `/luma/titles/00040000001B8700/`.
 
 The retail SMDH is marked New 3DS-only, and retail ExHeader settings are incompatible with this Old 3DS patch. Luma IPS does not replace either one. Existing bootstrap installations provide those prerequisites and should not be uninstalled.
 

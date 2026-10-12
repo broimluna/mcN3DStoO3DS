@@ -36,9 +36,9 @@ The rest of this guide gives the equivalent terminal commands and explains the f
 
 ## Choose your input CIA
 
-Start with your original base CIA, and use the original update CIA if you want game version 1.9. Do not give the patcher an already-patched CIA or DLC. Both versions place `code.ips` under the base title ID, `000400000017CA00`.
+Start with your original base CIA, and use the original update CIA if you want game version 1.9. Do not give the patcher an already-patched CIA or DLC. Both versions place `code.ips` under the base title ID, `00040000001B8700`.
 
-The reference update needs no separate seed. An encrypted North American base CIA needs its raw 16-byte title seed or a matching `seeddb.bin`. You can [download the base-game seed from Nintendo](https://kagiya-ctr.cdn.nintendo.net/title/0x000400000017ca00/ext_key?country=US) and save the binary file as `title-seed.bin`. Check that the file is exactly 16 bytes. If the download fails, use a seed or seed database you already have. Use `--seed-file "title-seed.bin"` for a raw seed or `--seeddb "seeddb.bin"` for a database. An already-decrypted CIA needs neither. Renaming a raw seed to `seeddb.bin` does not turn it into a database.
+The reference update needs no separate seed. An encrypted North American base CIA needs its raw 16-byte title seed or a matching `seeddb.bin`. You can [download the base-game seed from Nintendo](https://kagiya-ctr.cdn.nintendo.net/title/0x00040000001b8700/ext_key?country=US) and save the binary file as `title-seed.bin`. Check that the file is exactly 16 bytes. If the download fails, use a seed or seed database you already have. Use `--seed-file "title-seed.bin"` for a raw seed or `--seeddb "seeddb.bin"` for a database. An already-decrypted CIA needs neither. Renaming a raw seed to `seeddb.bin` does not turn it into a database.
 
 ## Make the bootstrap CIAs from a terminal
 
@@ -105,7 +105,7 @@ The output folder contains `code.ips` and `report.txt`. Running the patcher agai
 
 1. Boot while holding SELECT and turn on **Enable game patching** in Luma configuration.
 2. Fully close Minecraft.
-3. Copy `code.ips` to `/luma/titles/000400000017CA00/` on the SD card.
+3. Copy `code.ips` to `/luma/titles/00040000001B8700/` on the SD card.
 4. Leave the `romfs` folder and any shader replacements in place. Remove stale `code.bin`, `exheader.bin`, or `code.bps` overrides from the same title folder.
 5. Reinsert the SD card and launch Minecraft.
 

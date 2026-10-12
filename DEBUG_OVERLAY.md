@@ -19,7 +19,7 @@ Generate an overlay-enabled update patch with:
 ./mc3ds-patcher "Minecraft-update.cia" --overlay -o "minecraft-luma"
 ```
 
-Keep the compatible Old 3DS bootstrap base and update installed. Back up the current `code.ips`, then replace only `/luma/titles/000400000017CA00/code.ips` with the matching control-profile output. Fully close and relaunch Minecraft with Luma game patching enabled.
+Keep the compatible Old 3DS bootstrap base and update installed. Back up the current `code.ips`, then replace only `/luma/titles/00040000001B8700/code.ips` with the matching control-profile output. Fully close and relaunch Minecraft with Luma game patching enabled.
 
 No CIA reinstall, shader replacement or ExHeader override is required. Do not add `code.bin` or `exheader.bin`. To disable the overlay while keeping the current fixes, regenerate without `--overlay` and replace `code.ips` again.
 

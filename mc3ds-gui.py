@@ -610,9 +610,9 @@ class CMainWindow(QMainWindow):
                     if self.hasUpdate:
                         self.appendLog(", then bootstrap-update/bootstrap.cia")
 
-                    self.appendLog(f". Keep them installed. Copy {folder}/code.ips to /luma/titles/000400000017CA00/.\n")
+                    self.appendLog(f". Keep them installed. Copy {folder}/code.ips to /luma/titles/00040000001B8700/.\n")
                 else:
-                    self.appendLog("\nNext: copy code.ips to /luma/titles/000400000017CA00/ and relaunch Minecraft.\n")
+                    self.appendLog("\nNext: copy code.ips to /luma/titles/00040000001B8700/ and relaunch Minecraft.\n")
 
             return
 

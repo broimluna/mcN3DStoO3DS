@@ -141,4 +141,4 @@ Detailed private evidence and reproducible differential harnesses are in the ana
 
 ## Installation
 
-Keep the existing compatible bootstrap base and update installed. Replace only the matching `code.ips` in `/luma/titles/000400000017CA00/`, then fully close and relaunch Minecraft. Do not copy extracted `exheader.bin` or `code.bin` alongside it. Leave the LayeredFS shader files unchanged. Back up saves before hardware testing.
+Keep the existing compatible bootstrap base and update installed. Replace only the matching `code.ips` in `/luma/titles/00040000001B8700/`, then fully close and relaunch Minecraft. Do not copy extracted `exheader.bin` or `code.bin` alongside it. Leave the LayeredFS shader files unchanged. Back up saves before hardware testing.
