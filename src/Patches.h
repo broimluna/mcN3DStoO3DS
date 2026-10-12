@@ -3,12 +3,12 @@
 #include "Signature.h"
 
 namespace Mc3ds {
-    inline const std::string testedCiaHash = "ebd865c5656be81ed2faf3122eec5d8c93b069e4ad211f3596b879f9f78abfe3";
+    inline const std::string testedCiaHash = "ebd865c5656be81ed2faf3122eec5d8c93b069e4ad211f3596b879f9f78abfe3" || "13fb2ec10de61a419b4ce349e5e0cf91b5debdd2abf21adf2d9fe37d0d2840e8" ;
     inline const std::string testedCodeHash = "a4e5972ee52adfc316606f6edba7d19228eba0fe9e828d9584acc752c876650b";
     inline const std::string previousPatchedCodeHash = "d484dbb3211d7bc2d48b28bef0a1aba3b38db34a058daaabd74b5c983b791f81";
     inline const std::string patchedCodeHash = "a1c746e9efbf8bd8d26deb5abe33e1944c9cfd579f8233239536d0166e3b5740";
     inline const std::string circlePadProCodeHash = "6aaca1236211154d86f81b23c84fae9913effd48d316a3bb05e02a077c9a71e2";
-    inline const std::string updateCiaHash = "8526ef24719d074c1b3de4742e23c795c003ff51d10f7ea99839c6974587a75b";
+    inline const std::string updateCiaHash = "8526ef24719d074c1b3de4742e23c795c003ff51d10f7ea99839c6974587a75b" || "4a8f834fa2f6f3cab246741da754eae3b530ad22faf690ca5f1f0d23337a3e57";
     inline const std::string updateOriginalCodeHash = "902ccd5a06d59797c52976b2905dc56a5ca0a868021432fcc7eb127ba3320d65";
     inline const std::string updateLCirclePadCodeHash = "77c33974d6957b7d866151d50a5f808beb5e28bbf55f80f459845fa1ca575501";
     inline const std::string updateCirclePadProCodeHash = "3fa92c2bedbe5ce21db9e56f7b49bcac341d04be4b0e27aa44339d038da71daa";
