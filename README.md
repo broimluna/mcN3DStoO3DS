@@ -4,6 +4,8 @@
 
 This patcher makes a Luma `code.ips` file for Minecraft: New Nintendo 3DS Edition. It adds Old 3DS controls and memory changes, with an optional FPS overlay for the update.
 
+For North American users: the base game will patch fine, but trying to add the update makes the game crash. Please only use the base game for now.
+
 **Start with the [setup guide](GUIDE.md).** It covers the one-time console setup, the Python GUI or PC commands, and copying the patch to your SD card.
 
 You need your own original European Minecraft base CIA and a console with CFW. For first-time setup, add `--bootstrap-cia` to make the base CIA, and make the matching update CIA if you use the update. Install those CIAs once with FBI. No game files, keys, or seeds are included.
